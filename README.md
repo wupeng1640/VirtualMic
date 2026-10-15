@@ -96,6 +96,22 @@ devices, and this tool writes into one. See
 
 ## Quick start
 
+### Option A — download the app
+
+1. Grab `VirtualMic-<version>-macos.zip` from
+   [Releases](https://github.com/wupeng1640/VirtualMic/releases) and unzip it.
+2. **Right-click the app → Open → Open.** The first launch needs this: the build
+   is not signed with an Apple Developer ID, so Gatekeeper blocks a plain
+   double-click. See [docs/distribution.md](docs/distribution.md).
+3. Install a loopback device if you have none — grab
+   `VirtualMic-<version>-cli-macos.zip` and run `./install_blackhole.sh`, or use
+   the source tree below.
+
+Releases are universal (`arm64` + `x86_64`), so they run on Apple Silicon and
+Intel Macs alike.
+
+### Option B — build from source
+
 ```bash
 git clone https://github.com/wupeng1640/VirtualMic.git
 cd VirtualMic
@@ -107,6 +123,10 @@ make
 # 2. check you can see it
 ./build/vmic --loops
 ```
+
+A locally built app carries no quarantine flag, so it opens with a normal
+double-click — if you would rather not do the right-click dance above, this is
+the way.
 
 Then either open `build/VirtualMic.app`, or push from the command line:
 
@@ -208,6 +228,16 @@ make cli        # command-line tool only
 make aggdev     # aggregate device helper only
 make clean
 make install    # install vmic and aggdev into /usr/local/bin
+make ARCHS=arm64   # quicker local build, Apple Silicon only
+```
+
+`make` builds **universal** binaries (`arm64` + `x86_64`) so the same artifact
+runs on both architectures.
+
+To produce the release archives yourself:
+
+```bash
+./scripts/package.sh          # → dist/*.zip + SHA256SUMS.txt
 ```
 
 There is no Xcode project — the whole thing is a `Makefile` and about 2,000
@@ -230,11 +260,14 @@ lines of Objective-C. Dependencies are system frameworks only.
 │   ├── make_agg.sh           create/remove the aggregate device
 │   ├── aggdev.m              aggregate device helper source
 │   ├── install-agent.sh      LaunchAgent to recreate it at login
-│   └── uninstall-agent.sh
+│   ├── uninstall-agent.sh
+│   └── package.sh            build release archives into dist/
 ├── packaging/Info.plist      app bundle Info.plist
 └── docs/
     ├── architecture.md       design and trade-offs
     ├── aggregate-device.md   the transport-type problem, with evidence
+    ├── distribution.md       signing, notarisation, and why the first
+    │                         launch needs right-click → Open
     └── faq.md
 ```
 

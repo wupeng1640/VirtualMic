@@ -9,6 +9,11 @@ First public release.
 
 ### Added
 
+- Prebuilt release archives (universal `arm64` + `x86_64`): the GUI app and a
+  CLI package, published on the Releases page.
+- `scripts/package.sh` — builds `dist/*.zip` plus `SHA256SUMS.txt`.
+- `docs/distribution.md` — signing status, the Gatekeeper first-launch step,
+  and instructions for signing your own build.
 - `VirtualMic.app` — GUI with file picker, level meter and progress display.
 - `vmic` — command-line tool: `--list`, `--loops`, `--play` with `--device`,
   `--loop`, `--gain`, `--verify`, `--duration`, `--rate`.
@@ -26,4 +31,7 @@ First public release.
 ### Notes
 
 - Requires an external loopback device; none is bundled.
+- Builds are universal but **unsigned and un-notarised**, so a downloaded app
+  needs right-click → Open on its first launch. See
+  [docs/distribution.md](docs/distribution.md).
 - macOS 10.13 or later.

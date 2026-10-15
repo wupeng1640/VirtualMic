@@ -91,6 +91,20 @@ VirtualMic 把本地音频文件送进一个虚拟音频设备，于是任何从
 
 ## 快速开始
 
+### 方式 A —— 直接下载 App
+
+1. 到 [Releases](https://github.com/wupeng1640/VirtualMic/releases) 下载
+   `VirtualMic-<版本>-macos.zip` 并解压。
+2. **右键点 App → 打开 → 打开。** 首次启动必须这样：构建没有 Apple
+   Developer ID 签名，直接双击会被 Gatekeeper 拦截。原因见
+   [docs/distribution.md](docs/distribution.md)。
+3. 如果还没有环回设备，下载 `VirtualMic-<版本>-cli-macos.zip` 后运行
+   `./install_blackhole.sh`，或按下面方式 B 从源码装。
+
+发布包是 **universal**（`arm64` + `x86_64`），Apple Silicon 和 Intel Mac 都能跑。
+
+### 方式 B —— 从源码构建
+
 ```bash
 git clone https://github.com/wupeng1640/VirtualMic.git
 cd VirtualMic
@@ -102,6 +116,9 @@ make
 # 2. 确认能看到它
 ./build/vmic --loops
 ```
+
+本地构建出来的 App 没有隔离属性，双击即可打开 —— 不想做上面的「右键打开」
+就用这个方式。
 
 然后打开 `build/VirtualMic.app`，或用命令行推送：
 
@@ -197,6 +214,16 @@ make cli        # 只构建命令行工具
 make aggdev     # 只构建聚合设备工具
 make clean
 make install    # 把 vmic 和 aggdev 装到 /usr/local/bin
+make ARCHS=arm64   # 本地加速：只编 Apple Silicon
+```
+
+`make` 默认构建 **universal** 二进制（`arm64` + `x86_64`），同一份产物两种
+架构都能跑。
+
+想自己打发布包：
+
+```bash
+./scripts/package.sh          # → dist/*.zip + SHA256SUMS.txt
 ```
 
 没有 Xcode 工程 —— 整个项目就是一个 `Makefile` 加约 2000 行 Objective-C，
@@ -219,11 +246,14 @@ make install    # 把 vmic 和 aggdev 装到 /usr/local/bin
 │   ├── make_agg.sh           创建/删除聚合设备
 │   ├── aggdev.m              聚合设备工具源码
 │   ├── install-agent.sh      LaunchAgent：登录时自动重建
-│   └── uninstall-agent.sh
+│   ├── uninstall-agent.sh
+│   └── package.sh            打发布包到 dist/
 ├── packaging/Info.plist      app bundle 配置
 └── docs/
     ├── architecture.md       设计与取舍
     ├── aggregate-device.md   transport-type 问题，含证据
+    ├── distribution.md       签名、公证，以及为什么首次打开
+    │                         需要「右键 → 打开」
     └── faq.md
 ```
 

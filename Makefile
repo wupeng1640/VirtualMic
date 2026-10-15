@@ -16,6 +16,11 @@ APP     := $(BUILD)/VirtualMic.app
 # 最低支持的 macOS 版本
 MIN_OS  := 10.13
 
+# 目标架构。universal 让 Intel 和 Apple Silicon 都能跑；
+# 本地开发想快可以 make ARCHS=arm64
+ARCHS   ?= arm64 x86_64
+ARCHFLAGS := $(foreach a,$(ARCHS),-arch $(a))
+
 CFLAGS  := -fobjc-arc -isysroot $(SDK) -mmacosx-version-min=$(MIN_OS) \
            -Wall -Wno-deprecated-declarations -I src
 
@@ -44,8 +49,11 @@ $(APP): $(GUI_SRC) src/*.h packaging/Info.plist
 	@rm -rf "$(APP)"
 	@mkdir -p "$(APP)/Contents/MacOS" "$(APP)/Contents/Resources"
 	@echo "→ 编译 VirtualMic.app ..."
-	@clang $(CFLAGS) $(GUI_FW) -o "$(APP)/Contents/MacOS/VirtualMic" $(GUI_SRC)
+	@clang $(CFLAGS) $(ARCHFLAGS) $(GUI_FW) -o "$(APP)/Contents/MacOS/VirtualMic" $(GUI_SRC)
 	@cp packaging/Info.plist "$(APP)/Contents/Info.plist"
+	@echo "→ 签名（adhoc，无证书时的唯一选择）"
+	@codesign --force --deep --sign - "$(APP)" 2>/dev/null || \
+		echo "⚠️  签名跳过（下载分发会被 Gatekeeper 拦截，见 docs/distribution.md）"
 	@echo "✅ $(APP)"
 
 cli: $(BUILD)/vmic
@@ -53,7 +61,7 @@ cli: $(BUILD)/vmic
 $(BUILD)/vmic: $(CLI_SRC) src/*.h
 	@mkdir -p $(BUILD)
 	@echo "→ 编译 vmic ..."
-	@clang $(CFLAGS) $(CLI_FW) -o $@ $(CLI_SRC)
+	@clang $(CFLAGS) $(ARCHFLAGS) $(CLI_FW) -o $@ $(CLI_SRC)
 	@echo "✅ $@"
 
 aggdev: $(BUILD)/aggdev
@@ -61,7 +69,7 @@ aggdev: $(BUILD)/aggdev
 $(BUILD)/aggdev: scripts/aggdev.m
 	@mkdir -p $(BUILD)
 	@echo "→ 编译 aggdev ..."
-	@clang $(CFLAGS) -framework Foundation -framework CoreAudio -o $@ $<
+	@clang $(CFLAGS) $(ARCHFLAGS) -framework Foundation -framework CoreAudio -o $@ $<
 	@echo "✅ $@"
 
 # 无头自检：不会弹窗，适合 CI

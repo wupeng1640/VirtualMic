@@ -4,6 +4,7 @@
 |---|---|
 | [architecture.md](architecture.md) | Module boundaries, the real-time callback constraint, why no driver is bundled, what is deliberately absent |
 | [aggregate-device.md](aggregate-device.md) | Why some apps ignore BlackHole (`kAudioDeviceTransportTypeVirtual`) and the aggregate-device workaround, with evidence |
+| [distribution.md](distribution.md) | Why the released app is unsigned, what Gatekeeper does on first launch, universal architectures, and how to sign your own build |
 | [faq.md](faq.md) | Physical-mic injection, latency, Apple Silicon, SSH, recording, container mismatches |
 
 ## Screenshot

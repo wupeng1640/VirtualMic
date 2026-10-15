@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g. 1.0.1); defaults to the Info.plist value"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          sw_vers
+          uname -m
+          clang --version
+
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            V="${{ github.event.inputs.version }}"
+          elif [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            V="${GITHUB_REF_NAME#v}"
+          else
+            V="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' packaging/Info.plist)"
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $V"
+
+      - name: Package
+        run: ./scripts/package.sh "${{ steps.ver.outputs.version }}"
+
+      - name: Verify artifacts
+        run: |
+          set -e
+          ls -lh dist
+          # Universal?
+          for b in build/vmic build/aggdev; do
+            lipo -info "$b" | grep -q "x86_64" || { echo "::error::$b is not universal"; exit 1; }
+            lipo -info "$b" | grep -q "arm64"  || { echo "::error::$b is not universal"; exit 1; }
+          done
+          # Do the CLI binaries actually run?
+          ./build/vmic --help >/dev/null
+          ./build/aggdev --list >/dev/null
+          # Headless GUI self-test needs an audio device, which CI lacks,
+          # so only assert that the binary exists and is the right arch.
+          test -x build/VirtualMic.app/Contents/MacOS/VirtualMic
+          echo "All artifacts verified."
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: VirtualMic-${{ steps.ver.outputs.version }}
+          path: dist/*
+
+      - name: Publish release
+        if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.ver.outputs.version) }}
+          name: VirtualMic ${{ steps.ver.outputs.version }}
+          draft: false
+          generate_release_notes: true
+          body: |
+            ## Install
+
+            1. Download `VirtualMic-${{ steps.ver.outputs.version }}-macos.zip`
+               and unzip it.
+            2. **Right-click the app → Open → Open.** The first launch needs this
+               because the build is not signed with an Apple Developer ID; see
+               [docs/distribution.md](https://github.com/wupeng1640/VirtualMic/blob/main/docs/distribution.md)
+               for why and for alternatives.
+            3. Install a loopback device if you have none:
+               `./install_blackhole.sh` from the CLI package, or
+               `scripts/install_blackhole.sh` in the source tree.
+
+            The `-cli-macos.zip` package contains the `vmic` and `aggdev`
+            command-line tools plus the installer scripts. Those are plain
+            binaries and need no special first-launch step.
+
+            ### Checksums
+
+            See `SHA256SUMS.txt` in the assets.
+
+            ### Not signed
+
+            Universal (`arm64` + `x86_64`), but unsigned and un-notarised —
+            Gatekeeper will require the right-click → Open step on first launch.
+          files: |
+            dist/*.zip
+            dist/SHA256SUMS.txt
