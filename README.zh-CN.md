@@ -123,8 +123,7 @@ open build/VirtualMic.app
 
 选虚拟设备、选文件、点开始。界面有电平表和进度条显示推送状态。
 
-<!-- 换成你自己的截图：docs/screenshot.png -->
-<!-- ![VirtualMic 界面](docs/screenshot.png) -->
+![VirtualMic 界面](docs/screenshot.png)
 
 ### 命令行
 

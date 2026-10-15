@@ -8,11 +8,14 @@
 
 ## Screenshot
 
-`README.md` and `README.zh-CN.md` reference `docs/screenshot.png`. Drop a
-screenshot of the running app there to enable the image; the reference is inside
-an HTML comment until then, so a missing file breaks nothing.
+`screenshot.png` is the main window during playback:
 
-Suggested content: the main window with a virtual device selected, a file loaded,
-and the level meter showing activity during playback.
+- **虚拟声卡** — the target device, showing rate and channel counts
+- **音频文件** — the chosen file, with a source → target conversion summary
+  (`24000 Hz · 1 ch · 0 bit` → `48000 Hz · stereo`) and the duration
+- **音量 / 循环播放** — gain slider and loop toggle
+- **电平表** — the two bars are the send level and the read-back level
+- **状态行** — `正在推送到 BlackHole 2ch`
 
-Recommended: PNG, ~1200px wide, no personal file paths visible in the UI.
+To regenerate it, capture the window at about 1200px wide, with no personal file
+paths visible in the UI, and save it here as `screenshot.png`.

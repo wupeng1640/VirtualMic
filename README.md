@@ -129,8 +129,7 @@ open build/VirtualMic.app
 Pick a virtual device, pick a file, hit start. A level meter and a progress bar
 show what is being sent.
 
-<!-- Replace with your own screenshot: docs/screenshot.png -->
-<!-- ![VirtualMic screenshot](docs/screenshot.png) -->
+![VirtualMic screenshot](docs/screenshot.png)
 
 ### Command line
 
