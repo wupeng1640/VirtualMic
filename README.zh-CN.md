@@ -92,7 +92,7 @@ VirtualMic 把本地音频文件送进一个虚拟音频设备，于是任何从
 ## 快速开始
 
 ```bash
-git clone https://github.com/wupeng05/VirtualMic.git
+git clone https://github.com/wupeng1640/VirtualMic.git
 cd VirtualMic
 make
 

@@ -206,8 +206,15 @@ static OSStatus VMCaptureCallback(void *inRefCon,
                 AURenderCallbackStruct icb = {0};
                 icb.inputProc       = VMCaptureCallback;
                 icb.inputProcRefCon = (__bridge void *)self;
-                AudioUnitSetProperty(_inputUnit, kAudioUnitProperty_SetRenderCallback,
-                                     kAudioUnitScope_Input, 1, &icb, sizeof(icb));
+                // 必须用 SetInputCallback，不能用 SetRenderCallback。
+                // 对启用了输入的 output unit，是 InputCallback 通知"输入有数据了"，
+                // 然后我们在回调里 AudioUnitRender 把数据拉出来。
+                // 用 SetRenderCallback 的话回调被当成"要输出数据"来调用，
+                // AudioUnitRender 读的是输出 bus，永远读不到东西（帧数恒为 0）。
+                // Apple 头文件原文：inputProc "always receive a NULL AudioBufferList
+                // in ioData. You must call AudioUnitRender in order to obtain the audio."
+                AudioUnitSetProperty(_inputUnit, kAudioOutputUnitProperty_SetInputCallback,
+                                     kAudioUnitScope_Global, 0, &icb, sizeof(icb));
                 if (AudioUnitInitialize(_inputUnit) != noErr) {
                     NSLog(@"[路由] 输入侧初始化失败，跳过自检");
                     AudioComponentInstanceDispose(_inputUnit);

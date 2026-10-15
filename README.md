@@ -97,7 +97,7 @@ devices, and this tool writes into one. See
 ## Quick start
 
 ```bash
-git clone https://github.com/wupeng05/VirtualMic.git
+git clone https://github.com/wupeng1640/VirtualMic.git
 cd VirtualMic
 make
 

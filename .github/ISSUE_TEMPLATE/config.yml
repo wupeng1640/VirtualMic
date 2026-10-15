@@ -1,5 +1,5 @@
 blank_issues_enabled: true
 contact_links:
   - name: App does not show my virtual microphone
-    url: https://github.com/wupeng05/VirtualMic/blob/main/docs/aggregate-device.md
+    url: https://github.com/wupeng1640/VirtualMic/blob/main/docs/aggregate-device.md
     about: This is a known transport-type filter. There is a workaround.
