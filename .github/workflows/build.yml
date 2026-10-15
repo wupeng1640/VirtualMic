@@ -1,0 +1,80 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on macOS
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          sw_vers
+          uname -m
+          xcodebuild -version || true
+          clang --version
+
+      - name: Build everything
+        run: make all
+
+      - name: Verify binaries exist and run
+        run: |
+          test -x build/vmic
+          test -x build/aggdev
+          test -x build/VirtualMic.app/Contents/MacOS/VirtualMic
+          ./build/vmic --help
+          ./build/aggdev --list || true
+
+      - name: Check for compiler warnings
+        run: |
+          make clean
+          make all 2>&1 | tee /tmp/build.log
+          if grep -E "warning:" /tmp/build.log; then
+            echo "::error::build produced warnings"
+            exit 1
+          fi
+
+  lint-readme:
+    name: Check README links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify referenced local files exist
+        run: |
+          fail=0
+          # Markdown links to local paths must resolve.
+          # HTML comments are stripped first: optional assets (a screenshot the
+          # user has not added yet) live in comments on purpose, and a missing
+          # optional asset must not fail the build.
+          for md in README.md README.zh-CN.md docs/*.md; do
+            python3 - "$md" <<'PYEOF'
+          import re, sys, os, pathlib
+          path = sys.argv[1]
+          # strip HTML comments, then fenced code blocks
+          text = re.sub(r'<!--.*?-->', '', pathlib.Path(path).read_text(encoding='utf-8'), flags=re.S)
+          text = re.sub(r'```.*?```', '', text, flags=re.S)
+          missing = []
+          for target in re.findall(r'\]\(([^)#][^)]*)\)', text):
+              if re.match(r'^(https?:|mailto:|#)', target):
+                  continue
+              target = target.split('#')[0].strip('<>')
+              if not target:
+                  continue
+              base = os.path.dirname(path)
+              if os.path.exists(os.path.join(base, target)) or os.path.exists(target):
+                  continue
+              missing.append(target)
+          for m in sorted(set(missing)):
+              print(f"::error file={path}::missing link target: {m}")
+          sys.exit(1 if missing else 0)
+          PYEOF
+            [ $? -ne 0 ] && fail=1
+          done
+          exit $fail

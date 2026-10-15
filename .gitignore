@@ -1,0 +1,24 @@
+# 构建产物
+build/
+dist/
+*.app/
+*.o
+*.dSYM/
+
+# 本地产物
+vmic
+aggdev
+*.log
+
+# macOS
+.DS_Store
+._*
+__MACOSX/
+
+# BlackHole 源码（体积大，用脚本按需下载）
+vendor/BlackHole-*/
+
+# Xcode
+*.xcuserstate
+xcuserdata/
+DerivedData/
